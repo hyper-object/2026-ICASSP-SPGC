@@ -35,7 +35,43 @@ Ranking uses a composite score that aggregates RMSE, SAM, PSNR, SSIM, and EGRAS.
 5. Train your model and submit predictions to Kaggle to appear on the leaderboard.
 
 
-## Quick start: loading data
+## Quick Start
+1. Clone this repo `git clone https://github.com/hyper-object/2026-ICASSP-SPGC`
+2. Download the dataset from `https://www.kaggle.com/datasets/tusharkute/maharashtra-districts`
+
+The folder structure should look like this:
+```
+  |-- data
+      |-- test
+          |-- hsi_61
+              |-- Count: 19 *.h5
+          |-- hsi_448
+              |-- Count: 19 *.h5
+          |-- mosaic
+              |-- Count: 19 *.png
+          |-- rgb
+              |-- Count: 19 *.png
+          |-- rgb_2
+              |-- Count: 19 *.png
+          |-- rgb_4
+              |-- Count: 19 *.png
+      |-- train
+          |-- hsi_61
+              |-- Count: 167 *.h5
+          |-- hsi_448
+              |-- Count: 167 *.h5
+          |-- mosaic
+              |-- Count: 167 *.png
+          |-- rgb
+              |-- Count: 167 *.png
+          |-- rgb_2
+              |-- Count: 167 *.png
+          |-- rgb_4
+              |-- Count: 167 *.png
+```
+
+
+## Loading Data
 
 The examples below demonstrate how to load the Hyper-Object dataset and apply paired transforms.
 
