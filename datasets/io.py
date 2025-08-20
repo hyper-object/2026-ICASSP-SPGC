@@ -82,9 +82,17 @@ def read_rgb_image(path: Path) -> np.ndarray:
 
 def read_mosaic(path: Path) -> np.ndarray:
     """
-    Read a mosaic PNG (grayscale).
+    Read a mosaic saved as .npy.
     Returns HxWx1 float32 array in [0,1].
     """
-    img = Image.open(path).convert("L")  # force grayscale
-    arr = np.asarray(img, dtype=np.float32) / 255.0
-    return arr[..., None]  # add channel dimension
+    arr = np.load(path).astype(np.float32)
+
+    # If it's 2D, add channel dim -> (H,W,1)
+    if arr.ndim == 2:
+        arr = arr[..., None]
+
+    # Normalize if values look like 8-bit integers
+    if arr.max() > 1.0:
+        arr = arr / 255.0
+
+    return arr
