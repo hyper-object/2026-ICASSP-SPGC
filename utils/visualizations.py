@@ -22,7 +22,7 @@ def visualize_sample_overview(
 ):
     """
     Visualize a single item from a batch-like sample dict with keys:
-      "rgb", "cube", "mosaic", "rgb_2", "rgb_4", "id" (optional)
+      "input (mosaic or rgb)", "output", "id" (optional)
 
     - Each value is either CHW or BCHW (Torch/NumPy). This function handles both.
     - The HSI cube is shown as a 3-band false-color composite.
@@ -50,44 +50,28 @@ def visualize_sample_overview(
             arr = arr[k]
         return arr
 
-    rgb     = _pick(index, "rgb")
-    cube    = _pick(index, "cube")
-    rgb_2   = _pick(index, "rgb_2")
-    rgb_4   = _pick(index, "rgb_4")
-    mosaic  = _pick(index, "mosaic")
+    input_img    = _pick(index, "input")
+    output_cube  = _pick(index, "output")
 
     # Convert to viewable HWC in [0,1]
-    rgb_hwc    = _chw_to_hwc01(rgb)
-    rgb2_hwc   = _chw_to_hwc01(rgb_2)
-    rgb4_hwc   = _chw_to_hwc01(rgb_4)
-
-    # Mosaic (C=1) -> HWC
-    mosaic_chw = _ensure_chw(mosaic)
-    if not _is_single_channel(mosaic_chw):
-        raise ValueError(f"'mosaic' is expected to be single-channel; got C={mosaic_chw.shape[0]}")
-    mosaic_hwc = np.transpose(mosaic_chw, (1, 2, 0))
-    # normalize grayscale to [0,1] for display
-    mmin, mmax = np.nanmin(mosaic_hwc), np.nanmax(mosaic_hwc)
-    if mmax > mmin:
-        mosaic_hwc = (mosaic_hwc - mmin) / (mmax - mmin)
+    input_img_hwc    = _chw_to_hwc01(input_img)
+    output_cube_hwc   = _chw_to_hwc01(output_cube)
 
     # False-color from cube
-    C, H, W = cube.shape
+    C, H, W = output_cube.shape
     bsel = tuple(int(b) for b in cube_bands)
     if any(b < 0 or b >= C for b in bsel):
         raise ValueError(f"cube_bands {cube_bands} out of range for C={C}")
-    cube_fc = np.stack([cube[bsel[0]], cube[bsel[1]], cube[bsel[2]]], axis=-1)
+    cube_fc = np.stack([output_cube[bsel[0]], output_cube[bsel[1]], output_cube[bsel[2]]], axis=-1)
     # Normalize composite
     vmin, vmax = np.nanmin(cube_fc), np.nanmax(cube_fc)
     cube_fc = (cube_fc - vmin) / (max(vmax - vmin, 1e-8))
 
     # Plot overview
-    fig, axs = plt.subplots(1, 5, figsize=figsize)
-    axs[0].imshow(rgb_hwc);             axs[0].set_title("RGB"); axs[0].axis("off")
+    fig, axs = plt.subplots(1, 2, figsize=figsize)
+    axs[0].imshow(input_img_hwc, cmap=mosaic_cmap);             axs[0].set_title("Input Image"); axs[0].axis("off")
     axs[1].imshow(cube_fc);             axs[1].set_title(f"HSI false-color {bsel}"); axs[1].axis("off")
-    axs[2].imshow(mosaic_hwc.squeeze(), cmap=mosaic_cmap); axs[2].set_title("Mosaic"); axs[2].axis("off")
-    axs[3].imshow(rgb2_hwc);            axs[3].set_title("RGB_2"); axs[3].axis("off")
-    axs[4].imshow(rgb4_hwc);            axs[4].set_title("RGB_4"); axs[4].axis("off")
+
 
     # Suptitle
     if title is None:
@@ -106,6 +90,7 @@ def visualize_sample_overview(
 
 def visualize_hsi_grid(
     cube: ArrayLike,
+    index: int = 0,
     wl: Optional[Sequence[float]] = None,
     cols: int = 9,
     figsize: Tuple[int, int] = (16, 12),
@@ -153,9 +138,7 @@ def visualize_hsi_grid(
     -------
     fig, axes : Matplotlib objects
     """
-    arr = _to_numpy(cube).astype(np.float32)  # C,H,W
-    if arr.ndim == 4:  # BCHW -> use first
-        arr = arr[0]
+    arr = _to_numpy(cube[index]).astype(np.float32)  # C,H,W
     C, H, W = arr.shape
 
     # Compute global contrast if needed
