@@ -13,15 +13,19 @@ This repository provides lightweight dataset utilities, transforms, and loaders 
 
 Two tracks are offered. Both aim to reconstruct high-fidelity hyperspectral cubes spanning 400–1000 nm (61 bands).
 
-- Track 1 — Spectral Reconstruction from Mosaic Images
-  - Input: single-channel spectral mosaic image (one band per pixel).
-  - Output: full hyperspectral cube with C = 61 bands.
+- **Track 1 — Spectral Reconstruction from Mosaic Images**
+  - Input: single-plane mosaic image (H×W×1) with a 2×2 CFA pattern (RGGB).
+  - Output: hyperspectral reflectance cube (H×W×61) in [0, 1].
 
-- Track 2 — Joint Spatial & Spectral Super-Resolution
+- **Track 2 — Joint Spatial & Spectral Super-Resolution**
   - Input: low-resolution RGB image captured with a commodity camera.
   - Output: high-resolution hyperspectral cube with C ≫ 3 and spatial upscaling.
 
-Ranking uses a composite score that aggregates RMSE, SAM, PSNR, SSIM, and EGRAS.
+
+Submissions are ranked by Spectral-Spatial-Color (SSC) score, range in [0,1].
+- Spectral: SAM, SID, ERGAS
+- Spatial: PSNR, SSIM on a standardized sRGB render (D65, CIE 1931 2°)
+- Color: ΔE00 on the same sRGB render
 
 
 ## How to participate
@@ -32,7 +36,7 @@ Ranking uses a composite score that aggregates RMSE, SAM, PSNR, SSIM, and EGRAS.
    - Track 2: https://www.kaggle.com/competitions/2026-icassp-hyper-object-challenge-track-2
 3. Download the data from Kaggle.
 4. Use this repository to load and preprocess the data for your experiments.
-5. Train your model and submit predictions to Kaggle to appear on the leaderboard.
+5. Train your model and submit predictions (on private testing data) to Kaggle to appear on the leaderboard.
 
 
 ## Quick Start
@@ -44,29 +48,17 @@ The folder structure should look like this:
   |-- data
       |-- test
           |-- hsi_61
-              |-- Count: 19 *.h5
-          |-- hsi_448
-              |-- Count: 19 *.h5
-          |-- mosaic
-              |-- Count: 19 *.png
-          |-- rgb
-              |-- Count: 19 *.png
-          |-- rgb_2
-              |-- Count: 19 *.png
-          |-- rgb_4
-              |-- Count: 19 *.png
+              |-- Count: 11 *.h5
+          |-- mosaic  (if you download from track 1)
+              |-- Count: 11 *.npy
+          |-- rgb_2   (if you download from track 2)
+              |-- Count: 11 *.png
       |-- train
           |-- hsi_61
               |-- Count: 167 *.h5
-          |-- hsi_448
-              |-- Count: 167 *.h5
-          |-- mosaic
+          |-- mosaic  (if you download from track 1)
               |-- Count: 167 *.png
-          |-- rgb
-              |-- Count: 167 *.png
-          |-- rgb_2
-              |-- Count: 167 *.png
-          |-- rgb_4
+          |-- rgb_2   (if you download from track 2)
               |-- Count: 167 *.png
 ```
 
