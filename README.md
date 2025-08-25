@@ -41,7 +41,7 @@ Submissions are ranked by Spectral-Spatial-Color (SSC) score, range in [0,1].
 
 ## Quick Start
 1. Clone this repo `git clone https://github.com/hyper-object/2026-ICASSP-SPGC`
-2. Download the dataset from `https://www.kaggle.com/datasets/tusharkute/maharashtra-districts`
+2. Download the dataset from `https://www.kaggle.com/competitions/2026-icassp-hyper-object-challenge-track-1/data` and `https://www.kaggle.com/competitions/2026-icassp-hyper-object-challenge-track-2/data`
 
 The folder structure should look like this:
 ```
