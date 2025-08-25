@@ -480,6 +480,7 @@ def render_srgb_preview(
     illuminant: str = "D65",
     observer: str = "CIE 1931 2 Degree Standard Observer",
     clip: bool = True,
+    show_fig: bool = False,
     figsize: Tuple[int, int] = (6, 6),
     title: Optional[str] = None,
 ):
@@ -563,13 +564,14 @@ def render_srgb_preview(
         rgb = _hsi2srgb(arr, wl, vis_range=vis_range, illuminant=illuminant, observer=observer, clip=clip)
 
     # Show
-    plt.figure(figsize=figsize)
-    plt.imshow(rgb)
-    plt.axis("off")
-    if title:
-        plt.title(title)
-    plt.tight_layout()
-    plt.show()
+    if show_fig:
+        plt.figure(figsize=figsize)
+        plt.imshow(rgb)
+        plt.axis("off")
+        if title:
+            plt.title(title)
+        plt.tight_layout()
+        plt.show()
 
     return rgb
 
