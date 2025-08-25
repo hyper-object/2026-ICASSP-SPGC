@@ -43,16 +43,21 @@ Submissions are ranked by Spectral-Spatial-Color (SSC) score, range in [0,1].
 1. Clone this repo `git clone https://github.com/hyper-object/2026-ICASSP-SPGC`
 2. Download the dataset from `https://www.kaggle.com/competitions/2026-icassp-hyper-object-challenge-track-1/data` and `https://www.kaggle.com/competitions/2026-icassp-hyper-object-challenge-track-2/data`
 
-The folder structure should look like this:
+The folder structure for track 1 and 2. Note that you should have a pair of (mosaic, hsi_61) if you download the data for track 1, else (rgb_2, hsi_61) ffor track 2.
 ```
   |-- data
-      |-- test
+      |-- test-public
           |-- hsi_61
               |-- Count: 11 *.h5
           |-- mosaic  (if you download from track 1)
               |-- Count: 11 *.npy
           |-- rgb_2   (if you download from track 2)
               |-- Count: 11 *.png
+      |-- test-private
+          |-- mosaic  (if you download from track 1)
+              |-- Count: 4 *.npy
+          |-- rgb_2   (if you download from track 2)
+              |-- Count: 4 *.png
       |-- train
           |-- hsi_61
               |-- Count: 167 *.h5
@@ -63,10 +68,13 @@ The folder structure should look like this:
 ```
 
 
+
+
 ## Loading Data
 
 The examples below demonstrate how to load the Hyper-Object dataset and apply paired transforms.
 
+```python
     # Imports:
     import torch
     from torch.utils.data import DataLoader
@@ -79,7 +87,7 @@ The examples below demonstrate how to load the Hyper-Object dataset and apply pa
   
     # Create the dataset and dataloader:
     ds = HyperObjectDataset(
-        data_root="data",
+        data_root="data/track1",
         train=True,
         transforms=JointTransform(random_flip),
     )
@@ -91,16 +99,23 @@ The examples below demonstrate how to load the Hyper-Object dataset and apply pa
         num_workers=4,
         pin_memory=True,
     )
-
+```
 
 ## Baselines
+Two baseline methods are provided in `baselines` folder. 
+- raw2hsi.py provides a CNN+PixelShuffle approach to reconstruct 61 bands HSI cube from Raw Mosaic data, i.e., mosaic -> hsi_61
+- mstpp_up provides a modified mstpp approach to jointly reconstruct the spectral and spatial resolution of HSI cube from a low resolution RGB. 
 
-(TBD)
+To train the baseline models, you can run the `track1_train.py` for track 2 and `track1_train.py` for track 2.
 
 
 ## Evaluation
+We will use the Spectral-Spatial-Color (SSC) score for evaluation. The SSC score, ranges from 0 to 1 (higher the better), computes the reconstruction performance from the following three aspects:
+- Spectral: SAM, SID, ERGAS
+- Spatial: PSNR, SSIM on a standardized sRGB render (D65, CIE 1931 2°)
+- Color: ΔE00 on the same sRGB render
 
-(TBD)
+When you submit your prediction on Kaggle, it will return you the single SSC score. Please refer to our Kaggle page on how to prepare the submission file.
 
 
 
