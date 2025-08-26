@@ -29,12 +29,16 @@ class HyperObjectDataset(HSIDataset):
         track: int,
         data_root: str,
         train: bool = True,
-        transforms: Optional[Callable] = None
+        transforms: Optional[Callable] = None,
+        submisison: bool = False
     ) -> None:
         super().__init__(root=data_root, transforms=transforms)
         self.track = track 
 
-        hsi_61_path=ModalitySpec(root=Path(f"{data_root}/{'train' if train else 'test-public'}/hsi_61"), exts=(".h5",))
+        if submisison:
+            hsi_61_path=ModalitySpec(root=Path(f"{data_root}/{'train' if train else 'test_original'}/hsi_61"), exts=(".h5",))
+        else:
+            hsi_61_path=ModalitySpec(root=Path(f"{data_root}/{'train' if train else 'test-public'}/hsi_61"), exts=(".h5",))
 
         if track == 1:
             mosaic_path=ModalitySpec(root=Path(f"{data_root}/{'train' if train else 'test-public'}/mosaic"), exts=(".npy",))
@@ -44,7 +48,11 @@ class HyperObjectDataset(HSIDataset):
                     "hsi": hsi_61_path,
                 })
         elif track == 2:
-            rgb_2_path=ModalitySpec(root=Path(f"{data_root}/{'train' if train else 'test-public'}/rgb_2"),    exts=(".png", ".jpg"))
+            if submisison:
+                rgb_2_path=ModalitySpec(root=Path(f"{data_root}/{'train' if train else 'test_original'}/rgb_2"),    exts=(".png", ".jpg"))
+            else:
+                rgb_2_path=ModalitySpec(root=Path(f"{data_root}/{'train' if train else 'test-public'}/rgb_2"),    exts=(".png", ".jpg"))
+                
             (self.ids, self._maps) = build_index(
                 {
                     "rgb_2": rgb_2_path,
