@@ -110,9 +110,8 @@ To train the baseline models, you can run the `track1_train.py` for track 2 and 
 
 ## VRAM Requirements
 If you use our baseline with our training config, below is the expected compute needed:
-Training Track 1: Requires `~18GB VRAM`
-
-Training Track 2: Training `~42GB VRAM`
+- Training Track 1: Requires `~18GB VRAM`
+- Training Track 2: Training `~42GB VRAM`
 
 ## Evaluation
 We will use the Spectral-Spatial-Color (SSC) score for evaluation. The SSC score, ranges from 0 to 1 (higher the better), computes the reconstruction performance from the following three aspects:
