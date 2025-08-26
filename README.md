@@ -110,6 +110,7 @@ To train the baseline models, you can run the `track1_train.py` for track 2 and 
 
 # VRAM Requirements
 Training Track 1: Requires `~18GB VRAM`
+
 Training Track 2: Training `~42GB VRAM`
 
 ## Evaluation
