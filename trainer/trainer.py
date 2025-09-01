@@ -18,9 +18,8 @@ from .losses import ReconLoss
 
 from config.track1_cfg import TrainerCfg
 from utils.helpers import _to_hwc
-from utils.leaderboard_ssc import evaluate_pair_ssc
-from utils.metrics import sam as sam_metric, sid as sid_metric, ergas as ergas_metric
-from utils.metrics import psnr as psnr_metric, ssim as ssim_metric
+from utils.metrics import sam, sid, ergas
+from utils.metrics import psnr, ssim
 from utils.visualizations import render_srgb_preview  # returns HxWx3 float [0,1]
 
 class Trainer:
@@ -75,8 +74,6 @@ class Trainer:
                     "epoch", "lr", "train_loss", "val_loss",
                     "SAM_deg", "SID", "ERGAS",
                     "PSNR_dB", "SSIM", 
-                    "S_SAM", "S_SID", "S_ERGAS", "S_PSNR", "S_SSIM", 
-                    "S_SPEC", "S_SPAT", "S_COLOR", "SSC"
                 ]
                 w.writerow(header)
 
@@ -141,15 +138,7 @@ class Trainer:
         erg_list: List[float] = []
         psnr_list: List[float] = []
         ssim_list: List[float] = []
-        s_sam_list: List[float] = []
-        s_sid_list: List[float] = []
-        s_ergas_list: List[float] = []
-        s_psnr_list: List[float] = []
-        s_ssim_list: List[float] = []
-        s_spec_list: List[float] = []
-        s_spat_list: List[float] = []
-        s_color_list: List[float] = []
-        ssc_list: List[float] = []
+
 
         for batch in self.val_loader:
             input_img  :   torch.Tensor = batch["input"].to(self.device, non_blocking=True)
@@ -164,27 +153,23 @@ class Trainer:
 
             # per-sample metrics
             for i in range(pred_cube.size(0)):
-                scores = evaluate_pair_ssc(
-                    gt_cube=output_cube[i].detach().cpu().numpy(),
-                    pr_cube=pred_cube[i].detach().cpu().numpy(),
-                    wl_nm=self.wl_nm,
-                )
+                # --- spectral metrics (means over mask) ---
+                sam_mean = sam(output_cube[i].detach().cpu().numpy(), pred_cube[i].detach().cpu().numpy(), reduction="mean", mask=mask)      # deg (↓)
+                sid_mean = sid(output_cube[i].detach().cpu().numpy(), pred_cube[i].detach().cpu().numpy(), reduction="mean", mask=mask)      # (↓)
+                erg_val  = ergas(output_cube[i].detach().cpu().numpy(), pred_cube[i].detach().cpu().numpy(), scale=1.0)                      # (↓)
+
+                psnr_val = psnr(output_cube[i].detach().cpu().numpy(), pred_cube[i].detach().cpu().numpy(), data_range=1.0, mask=mask)
+                ssim_val = ssim(output_cube[i].detach().cpu().numpy(), pred_cube[i].detach().cpu().numpy(), data_range=1.0, mask=mask)
+
+                dE_mean  = _deltaE00_mean(output_cube[i].detach().cpu().numpy(), pred_cube[i].detach().cpu().numpy())
+
 
                 sam_list.append(scores["SAM_deg"])
                 sid_list.append(scores["SID"])
                 erg_list.append(scores["ERGAS"])
                 psnr_list.append(scores["PSNR_dB"])
                 ssim_list.append(scores["SSIM"])
-                
-                s_sam_list.append(scores["S_SAM"])
-                s_sid_list.append(scores["S_SID"])
-                s_ergas_list.append(scores["S_ERGAS"])
-                s_psnr_list.append(scores["S_PSNR"])
-                s_ssim_list.append(scores["S_SSIM"])
-                s_spec_list.append(scores["S_SPEC"])
-                s_spat_list.append(scores["S_SPAT"])
-                s_color_list.append(scores["S_COLOR"])
-                ssc_list.append(scores["SSC"])
+
 
         out: Dict[str, float] = {}
         out["val_loss"] = loss_sum / max(n_samples, 1)
@@ -193,15 +178,6 @@ class Trainer:
         out["ERGAS"]    = float(np.mean(erg_list)) if erg_list else float("nan")
         out["PSNR_dB"]  = float(np.mean(psnr_list)) if psnr_list else float("nan")
         out["SSIM"]     = float(np.mean(ssim_list)) if ssim_list else float("nan")
-        out["S_SAM"]    = float(np.mean(s_sam_list)) if s_sam_list else float("nan")
-        out["S_SID"]    = float(np.mean(s_sid_list)) if s_sid_list else float("nan")
-        out["S_ERGAS"]  = float(np.mean(s_ergas_list)) if s_ergas_list else float("nan")
-        out["S_PSNR"]   = float(np.mean(s_psnr_list)) if s_psnr_list else float("nan")
-        out["S_SSIM"]   = float(np.mean(s_ssim_list)) if s_ssim_list else float("nan")
-        out["S_SPEC"]   = float(np.mean(s_spec_list)) if s_spec_list else float("nan")
-        out["S_SPAT"]   = float(np.mean(s_spat_list)) if s_spat_list else float("nan")
-        out["S_COLOR"]  = float(np.mean(s_color_list)) if s_color_list else float("nan")
-        out["SSC"]      = float(np.mean(ssc_list)) if ssc_list else float("nan")
         return out
 
     def _current_lr(self) -> float:
@@ -220,15 +196,6 @@ class Trainer:
             val_stats.get("ERGAS", float("nan")),
             val_stats.get("PSNR_dB", float("nan")),
             val_stats.get("SSIM", float("nan")),
-            val_stats.get("S_SAM", float("nan")),
-            val_stats.get("S_SID", float("nan")),
-            val_stats.get("S_ERGAS", float("nan")),
-            val_stats.get("S_PSNR", float("nan")),
-            val_stats.get("S_SSIM", float("nan")),
-            val_stats.get("S_SPEC", float("nan")),
-            val_stats.get("S_SPAT", float("nan")),
-            val_stats.get("S_COLOR", float("nan")),
-            val_stats.get("SSC", float("nan")),
         ]
         with open(self.log_csv, "a", newline="") as f:
             csv.writer(f).writerow(row)
@@ -247,19 +214,6 @@ class Trainer:
             f"ERGAS: {val_stats.get('ERGAS', float('nan')):6.3f}",
             f"PSNR(dB): {val_stats.get('PSNR_dB', float('nan')):6.2f}",
             f"SSIM: {val_stats.get('SSIM', float('nan')):5.3f} | ",
-
-            # --- Spectral-Aware Metrics (1) ---
-            f"S_SAM: {val_stats.get('S_SAM', float('nan')):5.3f}",
-            f"S_SID: {val_stats.get('S_SID', float('nan')):7.4f}",
-            f"S_ERGAS: {val_stats.get('S_ERGAS', float('nan')):5.3f}",
-            f"S_PSNR: {val_stats.get('S_PSNR', float('nan')):7.4f}",
-            f"S_SSIM: {val_stats.get('S_SSIM', float('nan')):5.3f} | ",
-
-            # --- Spectral-Aware Metrics (2) ---
-            f"S_SPEC: {val_stats.get('S_SPEC', float('nan')):5.3f}",
-            f"S_SPAT: {val_stats.get('S_SPAT', float('nan')):5.3f}",
-            f"S_COLOR: {val_stats.get('S_COLOR', float('nan')):5.3f}",
-            f"SSC: {val_stats.get('SSC', float('nan')):5.3f} | ",
         ]
         print("  ".join(parts))
 

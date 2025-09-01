@@ -341,3 +341,10 @@ def ergas(
     val = 100.0 * float(scale) * float(np.sqrt(np.mean(ratios ** 2)))
     return val
 
+
+def _deltaE00_mean(rgb1: np.ndarray, rgb2: np.ndarray) -> float:
+    import colour
+    XYZ1 = colour.sRGB_to_XYZ(rgb1); XYZ2 = colour.sRGB_to_XYZ(rgb2)
+    Lab1 = colour.XYZ_to_Lab(XYZ1);  Lab2 = colour.XYZ_to_Lab(XYZ2)
+    dE = colour.difference.delta_E(Lab1.reshape(-1,3), Lab2.reshape(-1,3), method="CIE 2000")
+    return float(np.mean(dE))
