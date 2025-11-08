@@ -43,7 +43,7 @@ Submissions are ranked by Spectral-Spatial-Color (SSC) score, range in [0,1].
 1. Clone this repo `git clone https://github.com/hyper-object/2026-ICASSP-SPGC`
 2. Download the dataset from `https://www.kaggle.com/competitions/2026-icassp-hyper-object-challenge-track-1/data` and `https://www.kaggle.com/competitions/2026-icassp-hyper-object-challenge-track-2/data`
 
-The folder structure for track 1 and 2. Note that you should have a pair of (mosaic, hsi_61) if you download the data for track 1, else (rgb_2, hsi_61) ffor track 2.
+The folder structure for track 1 and 2. Note that you should have a pair of (mosaic, hsi_61) if you download the data for track 1, else (rgb_2, hsi_61) for track 2.
 ```
   |-- data
       |-- test-public
@@ -106,7 +106,7 @@ Two baseline methods are provided in `baselines` folder.
 - raw2hsi.py provides a CNN+PixelShuffle approach to reconstruct 61 bands HSI cube from Raw Mosaic data, i.e., mosaic -> hsi_61
 - mstpp_up provides a modified mstpp approach to jointly reconstruct the spectral and spatial resolution of HSI cube from a low resolution RGB. 
 
-To train the baseline models, you can run the `track1_train.py` for track 2 and `track1_train.py` for track 2.
+To train the baseline models, you can run the `track1_train.py` for track 2 and `track2_train.py` for track 2.
 
 ## VRAM Requirements
 If you use our baseline with our training config, below is the expected compute needed:
